@@ -13,36 +13,42 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('python-onefile.genexe', (uri: vscode.Uri) => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from python-onefile!');
-		//先获取工作区路径
-		const workspaceFolders = vscode.workspace.workspaceFolders;
-		if (workspaceFolders === undefined) {
-			vscode.window.showErrorMessage("没有打开工作区");
-			return;
-		}
-		const workspacePath = workspaceFolders[0].uri.fsPath;
-		// 从上下文获取源代码文件路径（不是从当前激活编辑器，而是文件管理器）
-		const source_path = uri.fsPath;
-		// 获取venv下的python路径
-		const pythonpath = workspacePath + "/.venv/Scripts/python.exe";
-		// 拼接打包命令
-		// const cmd = pythonpath + " -m PyInstaller --onefile --noconsole --distpath " + workspacePath + " " + source_path;
-		const cmd = pythonpath + " -m PyInstaller --onefile  --distpath " + workspacePath + " " + source_path;
+const disposable = vscode.commands.registerCommand('python-onefile.genexe', async (uri: vscode.Uri) => {
+	// The code you place here will be executed every time your command is executed
+	// Display a message box to the user
+	//先获取工作区路径
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (workspaceFolders === undefined) {
+		vscode.window.showErrorMessage("没有打开工作区");
+		return;
+	}
+	const workspacePath = workspaceFolders[0].uri.fsPath;
 
-		// 向终端（python-onefile）发送命令
-		// 查找名为 python-onefile 的终端
-		let terminal = vscode.window.terminals.find(t => t.name === 'python-onefile');
-		// 如果找不到就创建新终端
-		if (!terminal) {
-			terminal = vscode.window.createTerminal('python-onefile');
-		}
-		terminal.sendText(cmd, false); // 第二个参数为false表示不自动执行命令
+	// 从上下文获取源代码文件路径（不是从当前激活编辑器，而是文件管理器）
+	const source_path = uri.fsPath;
+	// 获取venv下的python路径
+	const pythonpath = workspacePath + "/.venv/Scripts/python.exe";
+	// 拼接打包命令
+	// const cmd = pythonpath + " -m PyInstaller --onefile --noconsole --distpath " + workspacePath + " " + source_path;
+	const cmd = pythonpath + " -m PyInstaller --onefile  --distpath " + workspacePath + " " + source_path;
+
+	// 向终端（python-onefile）发送命令
+	// 查找名为 python-onefile 的终端
+	let terminal = vscode.window.terminals.find(t => t.name === 'python-onefile');
+	// 如果找不到就创建新终端
+	if (!terminal) {
+		terminal = vscode.window.createTerminal('python-onefile');
 		terminal.show();
-		
-	});
+
+		// 等待一段时间，确保python插件加载环境变量完成
+		await new Promise(resolve => setTimeout(resolve, 2000)); // 2秒等待，可根据实际情况调整
+	} else {
+		terminal.show();
+	}
+
+	// 发送命令
+	terminal.sendText(cmd, false); // 第二个参数为false表示不自动执行命令
+});
 
 	context.subscriptions.push(disposable);
 }

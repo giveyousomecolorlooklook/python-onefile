@@ -9,7 +9,7 @@
   "name": "python-onefile",
   "displayName": "python-onefile",
   "description": "",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.98.0"
   },
